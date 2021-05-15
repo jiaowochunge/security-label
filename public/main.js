@@ -1,9 +1,19 @@
 $(function () {
-  function parseDate(item)
-  {
+  function parseDate(item) {
     // source is ISO 8601
-    var d = new Date(item.created_at);
+    const d = new Date(item.created_at);
     return d.toDateString();
+  }
+
+  function downloadCSV(event) {
+    const batchId = $(event.target).data('ray-data')
+    console.log(batchId)
+    fetch(`/api/download/${batchId}`)
+      .then( res => res.blob() )
+      .then( blob => {
+        var file = window.URL.createObjectURL(blob)
+        window.location.assign(file)
+      })
   }
 
   const dataTable = $('#dataTable').raytable({
@@ -13,6 +23,7 @@ $(function () {
       { field: 'amount', title: '数量', sort: true },
       { field: 'memo', title: '备注' },
       { field: 'created_at', title: '创建日期', sort: true, format: parseDate },
+      { title: '下载', icons: [{ glyph: 'bi bi-download', handler: downloadCSV, data: 'id' }] }
     ],
     pagesize: 20,
     maxPageButtons: 7,

@@ -126,6 +126,35 @@ app.get('/api/batches', (req, res) => {
   })
 })
 
+app.get('/api/download/:batchId', (req, res) => {
+  const batchId = req.params.batchId
+  pool.query('SELECT serial, code FROM serial WHERE batch_id = ?', [batchId], (err, result) => {
+    if (err) {
+      return failJSON(res, err)
+    }
+    // create directory if not exist
+    const dir = './download'
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir)
+    }
+    const filepath = `${dir}/${batchId}.csv`
+    if (fs.existsSync(filepath)) {
+      res.download(filepath, `WN-${batchId}.csv`)
+    } else {
+      const header = ['序列号,防伪码']
+      const rows = result.map(row => `${row.serial},${row.code}`)
+      const fileContent = header.concat(rows).join('\n')
+      fs.writeFile(filepath, fileContent, err => {
+        if (err) {
+          return failJSON(res, err)
+        } else {
+          res.download(filepath, `WN-${batchId}.csv`)
+        }
+      })
+    }
+  })
+})
+
 function failJSON(res, err) {
   res.header('Content-Type', 'text/plain; charset=UTF-8');
   res.json({
