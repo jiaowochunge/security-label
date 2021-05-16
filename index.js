@@ -22,11 +22,19 @@ app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
 
 // basic auth middleware
-app.use(basicAuth({
+const basicAuthMiddleware = basicAuth({
   users: authUsers,
   challenge: true,
   realm: 'Imb4T3st4ppXN'
-}))
+})
+app.use((req, res, next) => {
+  console.log('req.url', req.url)
+  if (req.url.startsWith('/openapi')) {
+    next()
+  } else {
+    basicAuthMiddleware(req, res, next)
+  }
+})
 
 // access log middleware
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
