@@ -10,6 +10,7 @@
   "author": "john",
   "license": "ISC",
   "dependencies": {
+    "ejs": "^3.1.6",
     "express": "^4.17.1",
     "express-basic-auth": "^1.2.0",
     "minimist": "^1.2.5",

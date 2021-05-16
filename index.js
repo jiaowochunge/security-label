@@ -17,15 +17,22 @@ if (!user || !password || !database) {
 const app = express()
 const port = 8200
 
+// ejs template
+app.set("view engine", "ejs");
+app.set("views", __dirname + "/views");
+
+// basic auth middleware
 app.use(basicAuth({
   users: authUsers,
   challenge: true,
   realm: 'Imb4T3st4ppXN'
 }))
 
+// access log middleware
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
 app.use(morgan('combined', { stream: accessLogStream }))
 app.use(express.urlencoded({ extended: true }));
+// static resource middleware
 app.use(express.static('public'))
 
 const pool  = mysql.createPool({
@@ -153,6 +160,61 @@ app.get('/api/download/:batchId', (req, res) => {
       })
     }
   })
+})
+
+app.get('/openapi/verify', (req, res) => {
+  const {serial, dos, code} = req.query
+  req.url = '/openapi/verify'
+  if (code) {
+    pool.query('SELECT has_verified, verify_date FROM serial WHERE serial = ? and dos = ? and code = ?', [serial, dos, code], (err, result) => {
+      if (err) {
+        // render same view, so the user may query again
+        return res.render('verify', {
+          serial,
+          dos
+        })
+      }
+      if (result.length === 0) {
+        return res.render('verify', {
+          serial,
+          dos,
+          success: false,
+          result: '未查询到结果，请确认有机码是否正确'
+        })
+      }
+      const [{has_verified, verify_date}] = result
+      if (has_verified) {
+        const fmtDate = `${verify_date.getFullYear()}年${verify_date.getMonth() + 1}月${verify_date.getDate()}日`
+        return res.render('verify', {
+          serial,
+          dos,
+          success: false,
+          result: `已查询过。查询日期：${fmtDate}`
+        })
+      }
+      // set verify flag
+      pool.query('UPDATE serial SET has_verified = ?, verify_date = ? WHERE serial = ?', [1, new Date(), serial], (err) => {
+        if (err) {
+          // render same view, so the user may query again
+          return res.render('verify', {
+            serial,
+            dos
+          })
+        }
+        return res.render('verify', {
+          serial,
+          dos,
+          success: true,
+          result: '正品'
+        })
+      })
+    })
+  } else {
+    res.render('verify', {
+      serial,
+      dos
+    })
+  }
 })
 
 function failJSON(res, err) {
