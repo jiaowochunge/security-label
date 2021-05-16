@@ -6,7 +6,7 @@ const authUsers = require('./auth-users.json')
 const morgan = require('morgan')
 const fs = require('fs')
 const path = require('path')
-const { genSerialCode } = require('./utils')
+const { ServerPort, genSerialCode, genVerifyUrl } = require('./utils')
 
 const { u: user, p: password, database } = argv
 if (!user || !password || !database) {
@@ -15,7 +15,6 @@ if (!user || !password || !database) {
 }
 
 const app = express()
-const port = 8200
 
 // ejs template
 app.set("view engine", "ejs");
@@ -143,7 +142,7 @@ app.get('/api/batches', (req, res) => {
 
 app.get('/api/download/:batchId', (req, res) => {
   const batchId = req.params.batchId
-  pool.query('SELECT serial, code FROM serial WHERE batch_id = ?', [batchId], (err, result) => {
+  pool.query('SELECT serial, dos, code FROM serial WHERE batch_id = ?', [batchId], (err, result) => {
     if (err) {
       return failJSON(res, err)
     }
@@ -157,7 +156,7 @@ app.get('/api/download/:batchId', (req, res) => {
       res.download(filepath, `WN-${batchId}.csv`)
     } else {
       const header = ['序列号,防伪码']
-      const rows = result.map(row => `${row.serial},${row.code}`)
+      const rows = result.map(row => `${genVerifyUrl(row.serial, row.dos)},${row.code}`)
       const fileContent = header.concat(rows).join('\n')
       fs.writeFile(filepath, fileContent, err => {
         if (err) {
@@ -234,6 +233,6 @@ function failJSON(res, err) {
   return
 }
 
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
+app.listen(ServerPort, () => {
+  console.log(`Example app listening at http://localhost:${ServerPort}`)
 })

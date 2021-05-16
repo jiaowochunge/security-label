@@ -39,3 +39,11 @@ function genSerialCode(batchId, count) {
 }
 
 exports.genSerialCode = genSerialCode
+
+const port = 8200
+exports.ServerPort = port
+
+const ServerDomain = 'http://localhost'
+exports.genVerifyUrl = function (serial, dos) {
+  return `${ServerDomain}:${port}/openapi/verify?serial=${serial}&dos=${dos}`
+}
