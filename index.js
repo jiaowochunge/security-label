@@ -68,7 +68,7 @@ app.post('/api/gen', (req, res, next) => {
       if (err) {
         return next(err)
       }
-      connection.query('INSERT INTO batch SET amount = ?', [amount], (err, results) => {
+      connection.query('INSERT INTO batch SET amount = ?, memo = ?', [amount, req.body.memo], (err, results) => {
         if (err) {
           return connection.rollback(function() {
             next(err)
