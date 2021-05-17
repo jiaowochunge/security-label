@@ -54,6 +54,10 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
+app.get('/success', (req, res) => {
+  res.render('create-success')
+})
+
 app.post('/api/gen', (req, res, next) => {
   const amount = parseInt(req.body.amount)
   if (amount <= 0) {
@@ -100,7 +104,7 @@ app.post('/api/gen', (req, res, next) => {
                     next(err)
                   })
                 }
-                res.send('success')
+                res.redirect('/success')
               })
             }
           })
