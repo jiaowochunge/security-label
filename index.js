@@ -27,8 +27,7 @@ const basicAuthMiddleware = basicAuth({
   realm: 'Imb4T3st4ppXN'
 })
 app.use((req, res, next) => {
-  console.log('req.url', req.url)
-  if (req.url.startsWith('/openapi')) {
+  if (req.url.startsWith('/openapi') || req.url.startsWith('/assets')) {
     next()
   } else {
     basicAuthMiddleware(req, res, next)
