@@ -15,10 +15,10 @@ function genSerial(batchId, index) {
 }
 
 /**
- * 3位数字的随机字符串，例如：003 027 836
+ * 6位数字的随机字符串，例如：003027
  */
 function genCode() {
-  return Math.floor(Math.random() * 1000).toString().padStart(3, 0);
+  return Math.floor(Math.random() * 1000000).toString().padStart(6, 0);
 }
 
 const dosCharPool = '1234567890qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP'
